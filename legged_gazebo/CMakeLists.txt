@@ -86,6 +86,22 @@ install(DIRECTORY worlds/
   DESTINATION share/${PROJECT_NAME}/worlds
 )
 
+
+# Install Gazebo models
+install(DIRECTORY models/
+        DESTINATION share/${PROJECT_NAME}/models
+)
+
+# Install ROS 2 launch files
+install(DIRECTORY launch/
+        DESTINATION share/${PROJECT_NAME}/launch
+)
+
+# Install Python scripts
+install(DIRECTORY scripts/
+        DESTINATION share/${PROJECT_NAME}/scripts
+)
+
 #####################
 ## Ament Exporting ##
 #####################
