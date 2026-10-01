@@ -1,14 +1,296 @@
 <?xml version='1.0' encoding='utf-8'?>
 <sdf version="1.9">
   <world name="forest_terrain_02">
-    <physics name="default_physics" type="dart">
-      <max_step_size>0.001</max_step_size>
-      <real_time_factor>1</real_time_factor>
-    </physics><gravity>0 0 -9.81</gravity>
+    <!-- Plugin for simulating physics -->
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics">
+        </plugin>
+    <!-- Plugin for handling user commands -->
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands">
+        </plugin>
+    <!-- Plugin for broadcasting scene updates -->
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster">
+        </plugin>
+    <!-- Plugin for handling sensors like the LIDAR -->
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+        <!-- Plugin for IMU -->
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu">
+        </plugin>
+    <!-- plugin for GPS  -->
+    <plugin filename="gz-sim-navsat-system" name="gz::sim::systems::NavSat">
+        </plugin>
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 -7000 7000 0 0 0</pose>
+      <diffuse>0.9 0.88 0.82 1</diffuse>
+      <!-- Zero specular prevents glint/reflection artifacts on terrain -->
+      <specular>0 0 0 1</specular>
+      <!-- gz-sim/OGRE2 bug: shadow map artifact appears when both X and Y are non-zero.
+                 Workaround: keep one horizontal component zero. Y-only = sun from north. -->
+      <direction>0.0 0.6 -0.6</direction>
+    </light>
+
+        <scene>
+      <!-- Ambient fills in shadows — simulates sky/bounce light -->
+      <ambient>0.45 0.48 0.55 1</ambient>
+      <grid>false</grid>
+      <origin_visual>false</origin_visual>
+      <!-- Procedural sky with atmosphere scattering and clouds -->
+      <sky>
+        <time>10</time>
+        <sunrise>6</sunrise>
+        <sunset>20</sunset>
+        <clouds>
+          <speed>12</speed>
+        </clouds>
+      </sky>
+    </scene>
+
+        <!-- Polymath standard physics simulation engine config,
+        ODE does not behave correctly with heightmaps, we'll use bullet instead -->
+    <!--        <physics type='ode'>-->
+    <!--            <max_step_size>0.005</max_step_size>-->
+    <!--            <real_time_factor>1</real_time_factor>-->
+    <!--            <real_time_update_rate>200</real_time_update_rate>-->
+    <!--        </physics>-->
+    <physics name="1ms" type="ignored">
+      <dart>
+        <!-- Heightmaps behave better with the bullet collision detector -->
+        <collision_detector>bullet</collision_detector>
+      </dart>
+    </physics>
+        <gravity>0 0 -9.8066</gravity>
+    <gui fullscreen="0">
+      <!-- 3D scene — camera_pose: 80m above launch point, north (yaw=π/2), 30° nose down (pitch=π/6) -->
+      <plugin filename="MinimalScene" name="3D View">
+        <gz-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </gz-gui>
+                <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <!-- 218.8m above terrain peak, facing north (yaw=π/2), 80° nose down (pitch=80°=1.3963rad) -->
+        <camera_pose>0 0 218.8 0 1.3963 1.5708</camera_pose>
+        <camera_clip>
+          <near>0.1</near>
+          <far>50000</far>
+        </camera_clip>
+      </plugin>
+            <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
+        <gz-gui>
+          <property key="state" type="string">floating</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+            <plugin filename="GzSceneManager" name="Scene Manager">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+            <plugin filename="InteractiveViewControl" name="Interactive view control">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+            <plugin filename="CameraTracking" name="Camera Tracking">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+            <plugin filename="MarkerManager" name="Marker manager">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+            <plugin filename="SelectEntities" name="Select Entities">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+            <plugin filename="Spawn" name="Spawn Entities">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+            <plugin filename="VisualizationCapabilities" name="Visualization Capabilities">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+            <plugin filename="WorldControl" name="World control">
+        <gz-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">72</property>
+          <property type="double" key="z">1</property>
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="left" target="left" />
+            <line own="bottom" target="bottom" />
+          </anchors>
+        </gz-gui>
+                <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+        <use_event>true</use_event>
+      </plugin>
+            <plugin filename="WorldStats" name="World stats">
+        <gz-gui>
+          <title>World stats</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">110</property>
+          <property type="double" key="width">290</property>
+          <property type="double" key="z">1</property>
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="right" target="right" />
+            <line own="bottom" target="bottom" />
+          </anchors>
+        </gz-gui>
+                <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+        <iterations>true</iterations>
+      </plugin>
+            <plugin filename="Shapes" name="Shapes">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="x" type="double">0</property>
+          <property key="y" type="double">0</property>
+          <property key="width" type="double">250</property>
+          <property key="height" type="double">50</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+          <property key="cardBackground" type="string">#666666</property>
+        </gz-gui>
+      </plugin>
+            <plugin filename="Lights" name="Lights">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="x" type="double">250</property>
+          <property key="y" type="double">0</property>
+          <property key="width" type="double">150</property>
+          <property key="height" type="double">50</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+          <property key="cardBackground" type="string">#666666</property>
+        </gz-gui>
+      </plugin>
+            <plugin filename="TransformControl" name="Transform control">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="x" type="double">0</property>
+          <property key="y" type="double">50</property>
+          <property key="width" type="double">250</property>
+          <property key="height" type="double">50</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+          <property key="cardBackground" type="string">#777777</property>
+        </gz-gui>
+      </plugin>
+            <plugin filename="Screenshot" name="Screenshot">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="x" type="double">250</property>
+          <property key="y" type="double">50</property>
+          <property key="width" type="double">50</property>
+          <property key="height" type="double">50</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+          <property key="cardBackground" type="string">#777777</property>
+        </gz-gui>
+      </plugin>
+            <plugin filename="CopyPaste" name="CopyPaste">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="x" type="double">300</property>
+          <property key="y" type="double">50</property>
+          <property key="width" type="double">100</property>
+          <property key="height" type="double">50</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+          <property key="cardBackground" type="string">#777777</property>
+        </gz-gui>
+      </plugin>
+            <plugin filename="ComponentInspector" name="Component inspector">
+        <gz-gui>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </gz-gui>
+      </plugin>
+            <plugin filename="EntityTree" name="Entity tree">
+        <gz-gui>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </gz-gui>
+      </plugin>
+    </gui>
+
+        <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <latitude_deg>46.508874731349465</latitude_deg>
+      <longitude_deg>11.309725493061073</longitude_deg>
+      <elevation>605.0</elevation>
+    </spherical_coordinates>
+
+        <!-- OGRE2 ignores both model and link <pose> for heightmap visuals;
+             visual position is controlled by <heightmap><pos> (world frame).
+             DART ignores <heightmap><pos> for collision; collision position
+             is controlled by <collision><pose> (standard SDF pose chain). -->
     <model name="terrain_02">
       <static>true</static>
-      <link name="terrain_link">
-        <visual name="terrain_visual">
+      <pose>0 0 0 0 0 0</pose>
+      <link name="ground">
+        <collision name="collision">
+          <pose>-10.37 -9.46 -29.61 0 0 0</pose>
+          <geometry>
+            <heightmap>
+              <uri>../models/terrain_02/mesh/height_map.png</uri>
+              <size>61.86 56.3 48.4</size>
+              <!-- DART ignores <pos> for collision heightmaps; positioning
+                                 is handled by <collision><pose> above instead -->
+              <pos>0 0 0</pos>
+            </heightmap>
+          </geometry>
+        </collision>
+                <visual name="ground_visual">
           <geometry>
             <heightmap>
               <texture>
@@ -23,36 +305,40 @@
                 <diffuse>../models/textures/rock_diffuse.png</diffuse>
                 <normal>../models/textures/flat_normal.png</normal>
                 <size>8</size>
-              </texture><blend>
-                <min_height>10</min_height>
-                <fade_dist>5</fade_dist>
-              </blend><blend>
-                <min_height>25</min_height>
-                <fade_dist>6</fade_dist>
-              </blend><uri>../models/terrain_02/mesh/height_map.png</uri>
-              <size>61.86 56.3 48.4</size>
-              <pos>0 0 0</pos>
-            </heightmap>
-          </geometry>
-        </visual><collision name="collision">
-          <pose>-10.37 -9.46 -29.61 0 0 0</pose>
-          <geometry>
-            <heightmap>
+              </texture><use_terrain_paging>false</use_terrain_paging>
               <uri>../models/terrain_02/mesh/height_map.png</uri>
               <size>61.86 56.3 48.4</size>
-              <pos>0 0 0</pos>
+              <!-- OGRE2 ignores model/link <pose> for heightmaps; <pos> is world frame -->
+              <pos>-10.37 -9.46 -29.61</pos>
+              <!-- sampling: mesh vertices per heightmap pixel (SDF 1.8+ default = 1).
+                                 Tested with 16-bit heightmaps at sampling 1, 4, 8: no visual or
+                                 physics difference observed — OGRE2 interpolates extra vertices but
+                                 the result is indistinguishable at SRTM source resolution. Higher
+                                 values only increase vertex buffer memory (cost scales as sampling²).
+                                 sdformat PR #459 changed default from 2->1: "no good reason to
+                                 subsample by default". Explicitly set to 1 to match intent. -->
+              <sampling>1</sampling>
+              <blend>
+                <min_height>16.1333</min_height>
+                <fade_dist>8.0667</fade_dist>
+              </blend><blend>
+                <min_height>32.2667</min_height>
+                <fade_dist>8.0667</fade_dist>
+              </blend>
             </heightmap>
           </geometry>
-        </collision>
+        </visual>
       </link>
-    </model><model name="tree_0001">
+    </model>
+
+    <model name="tree_0001">
       <static>true</static>
-      <pose>-28.2182 -25.4958 3.5000 0 0 1.402474</pose>
+      <pose>-38.5226 -27.2060 -25.2091 0 0 4.251828</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1695</radius>
+              <radius>0.2526</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -63,7 +349,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1695</radius>
+              <radius>0.2526</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -71,12 +357,12 @@
       </link>
     </model><model name="tree_0002">
       <static>true</static>
-      <pose>-22.1852 -27.6500 7.8598 0 0 0.546253</pose>
+      <pose>-37.6354 -23.1447 -24.6139 0 0 0.187221</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2806</radius>
+              <radius>0.1959</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -87,7 +373,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2806</radius>
+              <radius>0.1959</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -95,12 +381,12 @@
       </link>
     </model><model name="tree_0003">
       <static>true</static>
-      <pose>-16.3639 -24.9182 11.6026 0 0 3.175241</pose>
+      <pose>-37.8354 -14.2829 -23.9051 0 0 1.249334</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1594</radius>
+              <radius>0.1248</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -111,7 +397,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1594</radius>
+              <radius>0.1248</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -119,12 +405,12 @@
       </link>
     </model><model name="tree_0004">
       <static>true</static>
-      <pose>-8.6167 -24.9290 15.7918 0 0 3.423968</pose>
+      <pose>-31.5468 -28.1136 -20.4892 0 0 3.793323</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2370</radius>
+              <radius>0.2725</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -135,7 +421,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2370</radius>
+              <radius>0.2725</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -143,12 +429,12 @@
       </link>
     </model><model name="tree_0005">
       <static>true</static>
-      <pose>-3.4373 -22.5278 18.2614 0 0 0.040833</pose>
+      <pose>-31.1635 -25.6100 -20.0386 0 0 6.114267</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2657</radius>
+              <radius>0.2165</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -159,7 +445,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2657</radius>
+              <radius>0.2165</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -167,12 +453,12 @@
       </link>
     </model><model name="tree_0006">
       <static>true</static>
-      <pose>3.1336 -27.6500 22.2134 0 0 0.976907</pose>
+      <pose>-34.1316 -14.8580 -21.2777 0 0 3.886274</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1812</radius>
+              <radius>0.2693</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -183,7 +469,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1812</radius>
+              <radius>0.2693</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -191,12 +477,12 @@
       </link>
     </model><model name="tree_0007">
       <static>true</static>
-      <pose>9.8168 -25.6313 26.2902 0 0 0.607687</pose>
+      <pose>-30.6053 -12.6144 -18.5830 0 0 0.287923</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1367</radius>
+              <radius>0.2468</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -207,7 +493,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1367</radius>
+              <radius>0.2468</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -215,12 +501,12 @@
       </link>
     </model><model name="tree_0008">
       <static>true</static>
-      <pose>15.6347 -27.3764 29.8927 0 0 4.585040</pose>
+      <pose>-32.0712 -2.9727 -18.8647 0 0 1.462668</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2653</radius>
+              <radius>0.1344</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -231,7 +517,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2653</radius>
+              <radius>0.1344</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -239,12 +525,12 @@
       </link>
     </model><model name="tree_0009">
       <static>true</static>
-      <pose>17.0700 -26.3638 30.8098 0 0 3.468574</pose>
+      <pose>-31.0001 2.3470 -18.0948 0 0 2.292308</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1881</radius>
+              <radius>0.2344</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -255,7 +541,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1881</radius>
+              <radius>0.2344</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -263,12 +549,12 @@
       </link>
     </model><model name="tree_0010">
       <static>true</static>
-      <pose>27.3985 -27.5881 38.1920 0 0 3.627611</pose>
+      <pose>-33.2399 8.3887 -19.9988 0 0 5.885174</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2751</radius>
+              <radius>0.1681</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -279,7 +565,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2751</radius>
+              <radius>0.1681</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -287,12 +573,12 @@
       </link>
     </model><model name="tree_0011">
       <static>true</static>
-      <pose>-28.1025 -19.7378 4.1800 0 0 1.818278</pose>
+      <pose>-25.2886 -26.9384 -16.8915 0 0 4.021237</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1610</radius>
+              <radius>0.2981</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -303,7 +589,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1610</radius>
+              <radius>0.2981</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -311,12 +597,12 @@
       </link>
     </model><model name="tree_0012">
       <static>true</static>
-      <pose>-20.6532 -18.4502 9.5214 0 0 1.746560</pose>
+      <pose>-29.1459 -23.6742 -18.8161 0 0 4.875751</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1382</radius>
+              <radius>0.2717</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -327,7 +613,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1382</radius>
+              <radius>0.2717</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -335,12 +621,12 @@
       </link>
     </model><model name="tree_0013">
       <static>true</static>
-      <pose>-17.1840 -20.5847 11.3339 0 0 1.316371</pose>
+      <pose>-26.2329 -16.1035 -16.6371 0 0 1.682266</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1866</radius>
+              <radius>0.1768</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -351,7 +637,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1866</radius>
+              <radius>0.1768</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -359,12 +645,12 @@
       </link>
     </model><model name="tree_0014">
       <static>true</static>
-      <pose>-10.4302 -16.1500 14.8011 0 0 3.827283</pose>
+      <pose>-25.1384 -7.6100 -15.0887 0 0 1.977179</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2366</radius>
+              <radius>0.2777</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -375,7 +661,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2366</radius>
+              <radius>0.2777</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -383,12 +669,12 @@
       </link>
     </model><model name="tree_0015">
       <static>true</static>
-      <pose>-2.3931 -16.3063 18.3902 0 0 2.384189</pose>
+      <pose>-27.4236 -6.2732 -16.2622 0 0 2.883051</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1494</radius>
+              <radius>0.2846</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -399,7 +685,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1494</radius>
+              <radius>0.2846</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -407,12 +693,12 @@
       </link>
     </model><model name="tree_0016">
       <static>true</static>
-      <pose>4.9227 -19.3381 22.3113 0 0 4.301558</pose>
+      <pose>-26.4405 2.8886 -15.4425 0 0 1.650854</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2203</radius>
+              <radius>0.2210</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -423,7 +709,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2203</radius>
+              <radius>0.2210</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -431,12 +717,12 @@
       </link>
     </model><model name="tree_0017">
       <static>true</static>
-      <pose>9.9758 -22.0374 25.7189 0 0 0.201692</pose>
+      <pose>-29.3000 5.2250 -17.2240 0 0 1.378033</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1612</radius>
+              <radius>0.1919</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -447,7 +733,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1612</radius>
+              <radius>0.1919</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -455,12 +741,12 @@
       </link>
     </model><model name="tree_0018">
       <static>true</static>
-      <pose>13.4388 -17.7027 26.9868 0 0 5.924476</pose>
+      <pose>-23.9130 13.3531 -14.5585 0 0 0.296041</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1580</radius>
+              <radius>0.1364</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -471,7 +757,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1580</radius>
+              <radius>0.1364</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -479,12 +765,12 @@
       </link>
     </model><model name="tree_0019">
       <static>true</static>
-      <pose>21.3099 -20.3688 32.3799 0 0 2.485829</pose>
+      <pose>-19.7526 -30.6319 -14.3268 0 0 2.397785</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2380</radius>
+              <radius>0.1314</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -495,7 +781,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2380</radius>
+              <radius>0.1314</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -503,12 +789,12 @@
       </link>
     </model><model name="tree_0020">
       <static>true</static>
-      <pose>27.9745 -20.2837 36.9297 0 0 1.549606</pose>
+      <pose>-17.8461 -22.6698 -13.5499 0 0 5.408438</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1677</radius>
+              <radius>0.2948</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -519,7 +805,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1677</radius>
+              <radius>0.2948</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -527,12 +813,12 @@
       </link>
     </model><model name="tree_0021">
       <static>true</static>
-      <pose>-29.3769 -13.7373 4.7852 0 0 5.641188</pose>
+      <pose>-17.3000 -16.3798 -12.4316 0 0 3.373884</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2252</radius>
+              <radius>0.2427</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -543,7 +829,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2252</radius>
+              <radius>0.2427</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -551,12 +837,12 @@
       </link>
     </model><model name="tree_0022">
       <static>true</static>
-      <pose>-23.0655 -12.3185 8.1754 0 0 3.201448</pose>
+      <pose>-20.6021 -7.7634 -12.6667 0 0 2.731711</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2996</radius>
+              <radius>0.1401</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -567,7 +853,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2996</radius>
+              <radius>0.1401</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -575,12 +861,12 @@
       </link>
     </model><model name="tree_0023">
       <static>true</static>
-      <pose>-15.4073 -12.8141 12.6363 0 0 3.942360</pose>
+      <pose>-23.3000 -3.1881 -13.6457 0 0 1.654922</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1397</radius>
+              <radius>0.2777</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -591,7 +877,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1397</radius>
+              <radius>0.2777</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -599,12 +885,12 @@
       </link>
     </model><model name="tree_0024">
       <static>true</static>
-      <pose>-9.3826 -15.1719 15.2561 0 0 2.397785</pose>
+      <pose>-21.5548 1.3854 -12.6250 0 0 5.469629</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1314</radius>
+              <radius>0.2843</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -615,7 +901,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1314</radius>
+              <radius>0.2843</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -623,12 +909,12 @@
       </link>
     </model><model name="tree_0025">
       <static>true</static>
-      <pose>-1.4761 -13.2098 18.8162 0 0 5.408438</pose>
+      <pose>-21.1556 10.1136 -12.6464 0 0 0.960317</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2948</radius>
+              <radius>0.2296</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -639,7 +925,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2948</radius>
+              <radius>0.2296</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -647,12 +933,12 @@
       </link>
     </model><model name="tree_0026">
       <static>true</static>
-      <pose>5.0700 -12.9198 22.4382 0 0 3.373884</pose>
+      <pose>-20.1044 10.9074 -12.1120 0 0 3.332310</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2427</radius>
+              <radius>0.2602</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -663,7 +949,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2427</radius>
+              <radius>0.2602</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -671,12 +957,12 @@
       </link>
     </model><model name="tree_0027">
       <static>true</static>
-      <pose>7.7679 -10.3034 24.6297 0 0 2.731711</pose>
+      <pose>-11.3000 -28.0483 -10.5400 0 0 5.225509</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1401</radius>
+              <radius>0.2782</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -687,7 +973,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1401</radius>
+              <radius>0.2782</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -695,12 +981,12 @@
       </link>
     </model><model name="tree_0028">
       <static>true</static>
-      <pose>11.0700 -11.7281 26.2171 0 0 1.654922</pose>
+      <pose>-14.5443 -21.9637 -12.0389 0 0 5.949859</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2777</radius>
+              <radius>0.2780</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -711,7 +997,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2777</radius>
+              <radius>0.2780</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -719,12 +1005,12 @@
       </link>
     </model><model name="tree_0029">
       <static>true</static>
-      <pose>18.8152 -13.1546 30.8169 0 0 5.469629</pose>
+      <pose>-12.3188 -15.4273 -9.7986 0 0 4.779004</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2843</radius>
+              <radius>0.1325</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -735,7 +1021,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2843</radius>
+              <radius>0.1325</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -743,12 +1029,12 @@
       </link>
     </model><model name="tree_0030">
       <static>true</static>
-      <pose>25.2144 -10.4264 36.9097 0 0 0.960317</pose>
+      <pose>-14.1959 -11.6533 -9.9012 0 0 3.454518</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2296</radius>
+              <radius>0.2056</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -759,7 +1045,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2296</radius>
+              <radius>0.2056</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -767,12 +1053,12 @@
       </link>
     </model><model name="tree_0031">
       <static>true</static>
-      <pose>-27.7344 -9.6326 5.1782 0 0 3.332310</pose>
+      <pose>-14.6834 -1.6100 -8.5942 0 0 1.330767</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2602</radius>
+              <radius>0.1962</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -783,7 +1069,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2602</radius>
+              <radius>0.1962</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -791,12 +1077,12 @@
       </link>
     </model><model name="tree_0032">
       <static>true</static>
-      <pose>-20.1596 -7.1436 10.6788 0 0 5.837699</pose>
+      <pose>-17.3000 0.5991 -10.2099 0 0 1.958571</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1235</radius>
+              <radius>0.1562</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -807,7 +1093,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1235</radius>
+              <radius>0.1562</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -815,12 +1101,12 @@
       </link>
     </model><model name="tree_0033">
       <static>true</static>
-      <pose>-13.1986 -9.7565 14.0161 0 0 0.363955</pose>
+      <pose>-11.4038 7.3017 -6.4475 0 0 3.252025</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1754</radius>
+              <radius>0.1989</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -831,7 +1117,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1754</radius>
+              <radius>0.1989</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -839,12 +1125,12 @@
       </link>
     </model><model name="tree_0034">
       <static>true</static>
-      <pose>-6.9300 -10.1500 16.6647 0 0 3.053568</pose>
+      <pose>-13.2660 14.3733 -8.3326 0 0 3.696453</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1354</radius>
+              <radius>0.1809</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -855,7 +1141,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1354</radius>
+              <radius>0.1809</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -863,12 +1149,12 @@
       </link>
     </model><model name="tree_0035">
       <static>true</static>
-      <pose>-0.9300 -5.7252 20.3769 0 0 0.806707</pose>
+      <pose>-5.7519 -27.3915 -7.5410 0 0 5.688922</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2579</radius>
+              <radius>0.1612</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -879,7 +1165,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2579</radius>
+              <radius>0.1612</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -887,12 +1173,12 @@
       </link>
     </model><model name="tree_0036">
       <static>true</static>
-      <pose>-0.4264 -6.7592 20.3987 0 0 5.481658</pose>
+      <pose>-7.8126 -23.2019 -8.6367 0 0 4.203311</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1677</radius>
+              <radius>0.1628</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -903,7 +1189,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1677</radius>
+              <radius>0.1628</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -911,12 +1197,12 @@
       </link>
     </model><model name="tree_0037">
       <static>true</static>
-      <pose>6.8480 -6.5092 25.0181 0 0 4.586292</pose>
+      <pose>-8.0626 -15.5712 -7.3867 0 0 3.587970</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2171</radius>
+              <radius>0.2884</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -927,7 +1213,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2171</radius>
+              <radius>0.2884</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -935,12 +1221,12 @@
       </link>
     </model><model name="tree_0038">
       <static>true</static>
-      <pose>14.5923 -5.5021 31.1812 0 0 4.083304</pose>
+      <pose>-11.3000 -10.0112 -7.9566 0 0 1.196381</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2991</radius>
+              <radius>0.2653</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -951,7 +1237,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2991</radius>
+              <radius>0.2653</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -959,12 +1245,12 @@
       </link>
     </model><model name="tree_0039">
       <static>true</static>
-      <pose>17.8355 -6.2343 33.3148 0 0 1.411815</pose>
+      <pose>-6.5578 -3.3949 -2.8595 0 0 2.934403</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1418</radius>
+              <radius>0.1962</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -975,7 +1261,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1418</radius>
+              <radius>0.1962</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -983,12 +1269,12 @@
       </link>
     </model><model name="tree_0040">
       <static>true</static>
-      <pose>24.6694 -4.8832 40.2771 0 0 1.383667</pose>
+      <pose>-8.6922 -1.5761 -4.4271 0 0 0.618378</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1614</radius>
+              <radius>0.2971</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -999,7 +1285,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1614</radius>
+              <radius>0.2971</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1007,12 +1293,12 @@
       </link>
     </model><model name="tree_0041">
       <static>true</static>
-      <pose>-25.3819 0.0685 7.6759 0 0 5.688922</pose>
+      <pose>-9.7906 8.4359 -5.3902 0 0 1.562354</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1612</radius>
+              <radius>0.2751</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1023,7 +1309,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1612</radius>
+              <radius>0.2751</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1031,12 +1317,12 @@
       </link>
     </model><model name="tree_0042">
       <static>true</static>
-      <pose>-21.4426 -1.7419 10.3659 0 0 4.203311</pose>
+      <pose>-7.4993 15.4201 -4.6743 0 0 1.750151</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1628</radius>
+              <radius>0.1959</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1047,7 +1333,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1628</radius>
+              <radius>0.1959</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1055,12 +1341,12 @@
       </link>
     </model><model name="tree_0043">
       <static>true</static>
-      <pose>-15.6926 -0.1112 13.8295 0 0 3.587970</pose>
+      <pose>-2.2945 -31.6100 -4.9737 0 0 5.412016</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2884</radius>
+              <radius>0.1998</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1071,7 +1357,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2884</radius>
+              <radius>0.1998</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1079,12 +1365,12 @@
       </link>
     </model><model name="tree_0044">
       <static>true</static>
-      <pose>-12.9300 -0.5512 15.2683 0 0 1.196381</pose>
+      <pose>-2.9125 -28.8104 -5.8849 0 0 5.252916</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2653</radius>
+              <radius>0.2999</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1095,7 +1381,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2653</radius>
+              <radius>0.2999</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1103,12 +1389,12 @@
       </link>
     </model><model name="tree_0045">
       <static>true</static>
-      <pose>-2.1878 0.0651 21.1072 0 0 2.934403</pose>
+      <pose>0.7000 -23.4943 -3.7543 0 0 1.044964</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1962</radius>
+              <radius>0.2728</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1119,7 +1405,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1962</radius>
+              <radius>0.2728</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1127,12 +1413,12 @@
       </link>
     </model><model name="tree_0046">
       <static>true</static>
-      <pose>1.6778 -4.1161 22.3908 0 0 0.618378</pose>
+      <pose>-3.6814 -16.4850 -4.8260 0 0 0.368417</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2971</radius>
+              <radius>0.1922</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1143,7 +1429,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2971</radius>
+              <radius>0.1922</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1151,12 +1437,12 @@
       </link>
     </model><model name="tree_0047">
       <static>true</static>
-      <pose>6.5794 -0.1041 27.2316 0 0 1.562354</pose>
+      <pose>-5.3000 -7.6100 -2.9790 0 0 4.926461</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2751</radius>
+              <radius>0.1677</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1167,7 +1453,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2751</radius>
+              <radius>0.1677</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1175,12 +1461,12 @@
       </link>
     </model><model name="tree_0048">
       <static>true</static>
-      <pose>14.8707 0.8801 34.9942 0 0 1.750151</pose>
+      <pose>-5.2906 6.2970 -1.5863 0 0 1.864270</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1959</radius>
+              <radius>0.1479</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1191,7 +1477,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1959</radius>
+              <radius>0.1479</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1199,12 +1485,12 @@
       </link>
     </model><model name="tree_0049">
       <static>true</static>
-      <pose>20.0755 1.8500 40.7159 0 0 5.412016</pose>
+      <pose>0.2807 12.8760 1.7849 0 0 4.699669</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1998</radius>
+              <radius>0.2176</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1215,7 +1501,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1998</radius>
+              <radius>0.2176</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1223,12 +1509,12 @@
       </link>
     </model><model name="tree_0050">
       <static>true</static>
-      <pose>25.4575 -1.3504 44.0272 0 0 5.252916</pose>
+      <pose>0.7000 -28.6801 -3.9029 0 0 6.036752</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2999</radius>
+              <radius>0.1483</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1239,7 +1525,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2999</radius>
+              <radius>0.1483</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1247,12 +1533,12 @@
       </link>
     </model><model name="tree_0051">
       <static>true</static>
-      <pose>-24.9300 3.9657 8.2534 0 0 1.044964</pose>
+      <pose>4.8234 -21.9914 -1.1467 0 0 4.242486</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2728</radius>
+              <radius>0.2271</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1263,7 +1549,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2728</radius>
+              <radius>0.2271</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1271,12 +1557,12 @@
       </link>
     </model><model name="tree_0052">
       <static>true</static>
-      <pose>-23.3114 4.9750 9.4934 0 0 0.368417</pose>
+      <pose>3.7938 -15.6036 0.8680 0 0 1.547017</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1922</radius>
+              <radius>0.2803</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1287,7 +1573,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1922</radius>
+              <radius>0.2803</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1295,12 +1581,12 @@
       </link>
     </model><model name="tree_0053">
       <static>true</static>
-      <pose>-18.9300 7.8500 12.5060 0 0 4.926461</pose>
+      <pose>1.3961 -12.1656 0.8028 0 0 3.667321</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1677</radius>
+              <radius>0.1955</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1311,7 +1597,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1677</radius>
+              <radius>0.1955</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1319,12 +1605,12 @@
       </link>
     </model><model name="tree_0054">
       <static>true</static>
-      <pose>-11.9442 5.4351 16.4242 0 0 6.254425</pose>
+      <pose>0.7000 -5.2766 3.1450 0 0 4.499966</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2923</radius>
+              <radius>0.1568</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1335,7 +1621,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2923</radius>
+              <radius>0.1568</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1343,12 +1629,12 @@
       </link>
     </model><model name="tree_0055">
       <static>true</static>
-      <pose>-6.9206 3.7570 18.9649 0 0 1.864270</pose>
+      <pose>3.8426 3.3926 7.5049 0 0 1.884937</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1479</radius>
+              <radius>0.2409</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1359,7 +1645,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1479</radius>
+              <radius>0.2409</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1367,12 +1653,12 @@
       </link>
     </model><model name="tree_0056">
       <static>true</static>
-      <pose>4.6507 4.3360 26.9701 0 0 4.699669</pose>
+      <pose>5.6884 14.3648 5.6952 0 0 6.258659</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2176</radius>
+              <radius>0.2997</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1383,7 +1669,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2176</radius>
+              <radius>0.2997</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1391,12 +1677,12 @@
       </link>
     </model><model name="tree_0057">
       <static>true</static>
-      <pose>10.5504 5.7813 32.8465 0 0 5.357797</pose>
+      <pose>9.2562 -25.6100 1.4741 0 0 5.524618</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2105</radius>
+              <radius>0.2786</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1407,7 +1693,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2105</radius>
+              <radius>0.2786</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1415,12 +1701,12 @@
       </link>
     </model><model name="tree_0058">
       <static>true</static>
-      <pose>16.8663 7.8500 39.7519 0 0 1.167573</pose>
+      <pose>8.9003 -21.7533 1.6899 0 0 4.420472</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1344</radius>
+              <radius>0.2701</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1431,7 +1717,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1344</radius>
+              <radius>0.2701</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1439,12 +1725,12 @@
       </link>
     </model><model name="tree_0059">
       <static>true</static>
-      <pose>17.5896 3.1635 38.8537 0 0 0.753270</pose>
+      <pose>6.7000 -19.6100 1.2306 0 0 0.049154</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1623</radius>
+              <radius>0.2377</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1455,7 +1741,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1623</radius>
+              <radius>0.2377</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1463,12 +1749,12 @@
       </link>
     </model><model name="tree_0060">
       <static>true</static>
-      <pose>27.2304 3.8936 49.5703 0 0 3.891689</pose>
+      <pose>10.3904 -12.1493 8.7324 0 0 5.899471</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2270</radius>
+              <radius>0.2394</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1479,7 +1765,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2270</radius>
+              <radius>0.2394</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1487,12 +1773,12 @@
       </link>
     </model><model name="tree_0061">
       <static>true</static>
-      <pose>-30.2439 12.1368 6.5004 0 0 5.872933</pose>
+      <pose>10.3584 -3.8699 13.8050 0 0 3.476007</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2141</radius>
+              <radius>0.1393</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1503,7 +1789,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2141</radius>
+              <radius>0.1393</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1511,12 +1797,12 @@
       </link>
     </model><model name="tree_0062">
       <static>true</static>
-      <pose>-21.0302 13.8500 11.1510 0 0 2.486796</pose>
+      <pose>9.3186 4.0885 13.2578 0 0 1.279240</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1630</radius>
+              <radius>0.2492</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1527,7 +1813,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1630</radius>
+              <radius>0.2492</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1535,12 +1821,12 @@
       </link>
     </model><model name="tree_0063">
       <static>true</static>
-      <pose>-16.7280 9.3612 13.7856 0 0 4.724104</pose>
+      <pose>8.6588 6.2204 11.8094 0 0 5.688397</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1769</radius>
+              <radius>0.2079</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1551,7 +1837,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1769</radius>
+              <radius>0.2079</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1559,12 +1845,12 @@
       </link>
     </model><model name="tree_0064">
       <static>true</static>
-      <pose>-7.9416 11.8248 18.8702 0 0 6.258659</pose>
+      <pose>10.1998 12.6655 10.4136 0 0 1.738433</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2997</radius>
+              <radius>0.1962</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1575,7 +1861,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2997</radius>
+              <radius>0.1962</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1583,12 +1869,12 @@
       </link>
     </model><model name="tree_0065">
       <static>true</static>
-      <pose>-2.6893 11.4652 22.2512 0 0 5.863842</pose>
+      <pose>14.6847 -29.7929 5.5064 0 0 3.466310</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1677</radius>
+              <radius>0.2534</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1599,7 +1885,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1677</radius>
+              <radius>0.2534</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1607,12 +1893,12 @@
       </link>
     </model><model name="tree_0066">
       <static>true</static>
-      <pose>5.0700 8.0510 27.9817 0 0 0.991153</pose>
+      <pose>15.4495 -22.4876 6.3305 0 0 5.548721</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1865</radius>
+              <radius>0.1335</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1623,7 +1909,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1865</radius>
+              <radius>0.1335</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1631,12 +1917,12 @@
       </link>
     </model><model name="tree_0067">
       <static>true</static>
-      <pose>9.6364 8.1531 32.2548 0 0 6.202968</pose>
+      <pose>17.0398 -12.8888 14.5015 0 0 0.800764</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2301</radius>
+              <radius>0.1467</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1647,7 +1933,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2301</radius>
+              <radius>0.1467</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1655,12 +1941,12 @@
       </link>
     </model><model name="tree_0068">
       <static>true</static>
-      <pose>13.9278 10.6436 36.7525 0 0 1.881052</pose>
+      <pose>14.1672 -1.6100 18.6100 0 0 5.407954</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.2671</radius>
+              <radius>0.2633</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1671,7 +1957,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.2671</radius>
+              <radius>0.2633</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1679,12 +1965,12 @@
       </link>
     </model><model name="tree_0069">
       <static>true</static>
-      <pose>17.6215 7.8500 40.5691 0 0 0.725260</pose>
+      <pose>15.7028 8.3215 18.2658 0 0 5.555182</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
             <cylinder>
-              <radius>0.1442</radius>
+              <radius>0.2604</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry><material>
@@ -1695,7 +1981,7 @@
         </visual><collision name="trunk_collision">
           <geometry>
             <cylinder>
-              <radius>0.1442</radius>
+              <radius>0.2604</radius>
               <length>7.0000</length>
             </cylinder>
           </geometry>
@@ -1703,247 +1989,7 @@
       </link>
     </model><model name="tree_0070">
       <static>true</static>
-      <pose>28.0560 12.4316 51.8996 0 0 3.800258</pose>
-      <link name="trunk">
-        <visual name="trunk_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.1690</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry><material>
-            <ambient>0.22 0.08 0.025 1</ambient>
-            <diffuse>0.40 0.14 0.04 1</diffuse>
-            <specular>0.05 0.05 0.05 1</specular>
-          </material>
-        </visual><collision name="trunk_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.1690</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry>
-        </collision>
-      </link>
-    </model><model name="tree_0071">
-      <static>true</static>
-      <pose>-28.2027 15.5283 6.4043 0 0 1.658660</pose>
-      <link name="trunk">
-        <visual name="trunk_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.2342</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry><material>
-            <ambient>0.22 0.08 0.025 1</ambient>
-            <diffuse>0.40 0.14 0.04 1</diffuse>
-            <specular>0.05 0.05 0.05 1</specular>
-          </material>
-        </visual><collision name="trunk_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.2342</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry>
-        </collision>
-      </link>
-    </model><model name="tree_0072">
-      <static>true</static>
-      <pose>-24.9300 17.1627 8.1964 0 0 0.579928</pose>
-      <link name="trunk">
-        <visual name="trunk_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.2723</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry><material>
-            <ambient>0.22 0.08 0.025 1</ambient>
-            <diffuse>0.40 0.14 0.04 1</diffuse>
-            <specular>0.05 0.05 0.05 1</specular>
-          </material>
-        </visual><collision name="trunk_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.2723</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry>
-        </collision>
-      </link>
-    </model><model name="tree_0073">
-      <static>true</static>
-      <pose>-17.3577 17.5936 13.1742 0 0 4.845085</pose>
-      <link name="trunk">
-        <visual name="trunk_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.1206</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry><material>
-            <ambient>0.22 0.08 0.025 1</ambient>
-            <diffuse>0.40 0.14 0.04 1</diffuse>
-            <specular>0.05 0.05 0.05 1</specular>
-          </material>
-        </visual><collision name="trunk_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.1206</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry>
-        </collision>
-      </link>
-    </model><model name="tree_0074">
-      <static>true</static>
-      <pose>-10.9453 15.6671 17.0445 0 0 3.466310</pose>
-      <link name="trunk">
-        <visual name="trunk_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.2534</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry><material>
-            <ambient>0.22 0.08 0.025 1</ambient>
-            <diffuse>0.40 0.14 0.04 1</diffuse>
-            <specular>0.05 0.05 0.05 1</specular>
-          </material>
-        </visual><collision name="trunk_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.2534</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry>
-        </collision>
-      </link>
-    </model><model name="tree_0075">
-      <static>true</static>
-      <pose>-4.1805 16.9724 21.1125 0 0 5.548721</pose>
-      <link name="trunk">
-        <visual name="trunk_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.1335</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry><material>
-            <ambient>0.22 0.08 0.025 1</ambient>
-            <diffuse>0.40 0.14 0.04 1</diffuse>
-            <specular>0.05 0.05 0.05 1</specular>
-          </material>
-        </visual><collision name="trunk_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.1335</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry>
-        </collision>
-      </link>
-    </model><model name="tree_0076">
-      <static>true</static>
-      <pose>4.1381 15.4241 27.2929 0 0 3.660016</pose>
-      <link name="trunk">
-        <visual name="trunk_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.2702</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry><material>
-            <ambient>0.22 0.08 0.025 1</ambient>
-            <diffuse>0.40 0.14 0.04 1</diffuse>
-            <specular>0.05 0.05 0.05 1</specular>
-          </material>
-        </visual><collision name="trunk_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.2702</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry>
-        </collision>
-      </link>
-    </model><model name="tree_0077">
-      <static>true</static>
-      <pose>8.6939 17.6875 30.9009 0 0 5.648467</pose>
-      <link name="trunk">
-        <visual name="trunk_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.1755</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry><material>
-            <ambient>0.22 0.08 0.025 1</ambient>
-            <diffuse>0.40 0.14 0.04 1</diffuse>
-            <specular>0.05 0.05 0.05 1</specular>
-          </material>
-        </visual><collision name="trunk_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.1755</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry>
-        </collision>
-      </link>
-    </model><model name="tree_0078">
-      <static>true</static>
-      <pose>15.2047 13.8500 37.9468 0 0 1.319950</pose>
-      <link name="trunk">
-        <visual name="trunk_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.2818</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry><material>
-            <ambient>0.22 0.08 0.025 1</ambient>
-            <diffuse>0.40 0.14 0.04 1</diffuse>
-            <specular>0.05 0.05 0.05 1</specular>
-          </material>
-        </visual><collision name="trunk_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.2818</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry>
-        </collision>
-      </link>
-    </model><model name="tree_0079">
-      <static>true</static>
-      <pose>20.0728 17.7815 41.7193 0 0 5.555182</pose>
-      <link name="trunk">
-        <visual name="trunk_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.2604</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry><material>
-            <ambient>0.22 0.08 0.025 1</ambient>
-            <diffuse>0.40 0.14 0.04 1</diffuse>
-            <specular>0.05 0.05 0.05 1</specular>
-          </material>
-        </visual><collision name="trunk_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.2604</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry>
-        </collision>
-      </link>
-    </model><model name="tree_0080">
-      <static>true</static>
-      <pose>23.7534 18.3952 45.2234 0 0 5.842615</pose>
+      <pose>13.3834 14.9352 12.0047 0 0 5.842615</pose>
       <link name="trunk">
         <visual name="trunk_visual">
           <geometry>
@@ -1965,252 +2011,6 @@
           </geometry>
         </collision>
       </link>
-    </model><model name="tree_0081">
-      <static>true</static>
-      <pose>-24.9300 19.8500 8.0239 0 0 5.538101</pose>
-      <link name="trunk">
-        <visual name="trunk_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.2659</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry><material>
-            <ambient>0.22 0.08 0.025 1</ambient>
-            <diffuse>0.40 0.14 0.04 1</diffuse>
-            <specular>0.05 0.05 0.05 1</specular>
-          </material>
-        </visual><collision name="trunk_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.2659</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry>
-        </collision>
-      </link>
-    </model><model name="tree_0082">
-      <static>true</static>
-      <pose>-18.9300 23.3567 11.7204 0 0 5.848489</pose>
-      <link name="trunk">
-        <visual name="trunk_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.1798</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry><material>
-            <ambient>0.22 0.08 0.025 1</ambient>
-            <diffuse>0.40 0.14 0.04 1</diffuse>
-            <specular>0.05 0.05 0.05 1</specular>
-          </material>
-        </visual><collision name="trunk_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.1798</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry>
-        </collision>
-      </link>
-    </model><model name="tree_0083">
-      <static>true</static>
-      <pose>-14.6421 19.8500 14.6713 0 0 1.676390</pose>
-      <link name="trunk">
-        <visual name="trunk_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.2659</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry><material>
-            <ambient>0.22 0.08 0.025 1</ambient>
-            <diffuse>0.40 0.14 0.04 1</diffuse>
-            <specular>0.05 0.05 0.05 1</specular>
-          </material>
-        </visual><collision name="trunk_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.2659</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry>
-        </collision>
-      </link>
-    </model><model name="tree_0084">
-      <static>true</static>
-      <pose>-9.7074 21.9196 17.3652 0 0 5.394701</pose>
-      <link name="trunk">
-        <visual name="trunk_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.2770</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry><material>
-            <ambient>0.22 0.08 0.025 1</ambient>
-            <diffuse>0.40 0.14 0.04 1</diffuse>
-            <specular>0.05 0.05 0.05 1</specular>
-          </material>
-        </visual><collision name="trunk_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.2770</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry>
-        </collision>
-      </link>
-    </model><model name="tree_0085">
-      <static>true</static>
-      <pose>-3.2952 25.8500 20.8927 0 0 1.917571</pose>
-      <link name="trunk">
-        <visual name="trunk_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.2029</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry><material>
-            <ambient>0.22 0.08 0.025 1</ambient>
-            <diffuse>0.40 0.14 0.04 1</diffuse>
-            <specular>0.05 0.05 0.05 1</specular>
-          </material>
-        </visual><collision name="trunk_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.2029</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry>
-        </collision>
-      </link>
-    </model><model name="tree_0086">
-      <static>true</static>
-      <pose>2.4740 21.4706 25.2106 0 0 1.213470</pose>
-      <link name="trunk">
-        <visual name="trunk_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.1243</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry><material>
-            <ambient>0.22 0.08 0.025 1</ambient>
-            <diffuse>0.40 0.14 0.04 1</diffuse>
-            <specular>0.05 0.05 0.05 1</specular>
-          </material>
-        </visual><collision name="trunk_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.1243</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry>
-        </collision>
-      </link>
-    </model><model name="tree_0087">
-      <static>true</static>
-      <pose>6.1825 25.8500 27.2125 0 0 1.753794</pose>
-      <link name="trunk">
-        <visual name="trunk_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.2940</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry><material>
-            <ambient>0.22 0.08 0.025 1</ambient>
-            <diffuse>0.40 0.14 0.04 1</diffuse>
-            <specular>0.05 0.05 0.05 1</specular>
-          </material>
-        </visual><collision name="trunk_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.2940</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry>
-        </collision>
-      </link>
-    </model><model name="tree_0088">
-      <static>true</static>
-      <pose>12.7967 21.2813 33.5316 0 0 3.369143</pose>
-      <link name="trunk">
-        <visual name="trunk_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.2966</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry><material>
-            <ambient>0.22 0.08 0.025 1</ambient>
-            <diffuse>0.40 0.14 0.04 1</diffuse>
-            <specular>0.05 0.05 0.05 1</specular>
-          </material>
-        </visual><collision name="trunk_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.2966</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry>
-        </collision>
-      </link>
-    </model><model name="tree_0089">
-      <static>true</static>
-      <pose>20.9889 22.4811 40.2159 0 0 1.121975</pose>
-      <link name="trunk">
-        <visual name="trunk_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.2947</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry><material>
-            <ambient>0.22 0.08 0.025 1</ambient>
-            <diffuse>0.40 0.14 0.04 1</diffuse>
-            <specular>0.05 0.05 0.05 1</specular>
-          </material>
-        </visual><collision name="trunk_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.2947</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry>
-        </collision>
-      </link>
-    </model><model name="tree_0090">
-      <static>true</static>
-      <pose>27.5977 22.4836 46.3060 0 0 2.730445</pose>
-      <link name="trunk">
-        <visual name="trunk_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.1395</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry><material>
-            <ambient>0.22 0.08 0.025 1</ambient>
-            <diffuse>0.40 0.14 0.04 1</diffuse>
-            <specular>0.05 0.05 0.05 1</specular>
-          </material>
-        </visual><collision name="trunk_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.1395</radius>
-              <length>7.0000</length>
-            </cylinder>
-          </geometry>
-        </collision>
-      </link>
-    </model><light name="sun" type="directional">
-      <cast_shadows>true</cast_shadows>
-      <pose>0 0 20 0.5 0.2 0</pose>
-      <diffuse>0.8 0.8 0.8 1</diffuse>
-      <specular>0.2 0.2 0.2 1</specular>
-      <direction>-0.3 0.1 -0.9</direction>
-    </light>
+    </model>
   </world>
 </sdf>
