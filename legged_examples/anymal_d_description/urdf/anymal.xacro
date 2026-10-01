@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<!--
+  Control-enabled wrapper around the upstream ANYmal D URDF. Keeping the
+  mechanical model in anymal.urdf avoids duplicating or approximating its
+  kinematics merely to use the same generation path as the Unitree robots.
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="anymal">
+  <xacro:arg name="robot_type" default="anymal"/>
+
+  <xacro:include filename="$(find anymal_d_description)/urdf/anymal.urdf"/>
+
+  <!-- Shared hybrid joint, IMU and gz_ros2_control declarations. -->
+  <xacro:include filename="$(find legged_unitree_description)/urdf/common/gazebo.xacro"/>
+
+  <!-- Preserve the four named foot links when URDF is converted to SDF and
+       enable contact data on the collision attached to each foot. -->
+  <xacro:macro name="anymal_foot_contact" params="prefix fixed_joint">
+    <gazebo reference="${fixed_joint}">
+      <disableFixedJointLumping>true</disableFixedJointLumping>
+    </gazebo>
+    <gazebo reference="${prefix}_FOOT">
+      <mu1>0.6</mu1>
+      <mu2>0.6</mu2>
+      <self_collide>true</self_collide>
+      <sensor name="${prefix}_foot_contact" type="contact">
+        <always_on>true</always_on>
+        <update_rate>100</update_rate>
+        <contact>
+          <collision>${prefix}_FOOT_collision_1</collision>
+        </contact>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+
+  <xacro:anymal_foot_contact prefix="LF" fixed_joint="LF_shank_fixed_LF_FOOT"/>
+  <xacro:anymal_foot_contact prefix="LH" fixed_joint="LH_shank_fixed_LH_FOOT"/>
+  <xacro:anymal_foot_contact prefix="RF" fixed_joint="RF_shank_fixed_RF_FOOT"/>
+  <xacro:anymal_foot_contact prefix="RH" fixed_joint="RH_shank_fixed_RH_FOOT"/>
+</robot>
