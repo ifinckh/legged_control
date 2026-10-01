@@ -1,0 +1,29 @@
+<launch>
+  <arg name="robot_type" default="anymal" description="Robot type"/>
+  <arg name="use_sim_time" default="true"/>
+
+  <!-- Set robot description path -->
+  <arg name="description_file" default="$(find-pkg-share anymal_d_description)/urdf/anymal.xacro"/>
+  
+  <!-- ROS 2 has no global parameter server. Pass the URDF XML directly to the node. -->
+  <let name="legged_robot_description" value="$(command &apos;xacro $(var description_file)&apos;)"/>
+
+  <!-- Keep the controller model in the same location used by the Unitree robots. -->
+  <node pkg="legged_common" exec="generate_urdf.sh" output="screen" name="generate_urdf"
+    args="$(var description_file) $(var robot_type)"/>
+
+  <node pkg="robot_state_publisher" exec="robot_state_publisher" name="robot_state_publisher" output="screen">
+    <param name="robot_description" value="$(var legged_robot_description)"/>
+    <param name="use_sim_time" value="$(var use_sim_time)"/>
+  </node>
+
+  <include file="$(find-pkg-share ros_gz_sim)/launch/gz_sim.launch.py">
+    <arg name="gz_args" value="-r $(find-pkg-share legged_gazebo)/worlds/empty_world.world"/>
+  </include>
+
+  <node pkg="ros_gz_sim" exec="create" output="screen" name="spawn_urdf" 
+    args="-z 0.82 -topic robot_description -name $(var robot_type)"/>
+
+  <node pkg="ros_gz_bridge" exec="parameter_bridge" name="clock_bridge" output="screen"
+    args="/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock"/>
+</launch>
