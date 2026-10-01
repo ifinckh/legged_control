@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<launch>
+
+  <arg name="use_sim_time" default="true"/>
+
+  <!-- Set robot description path -->
+  <arg name="description_file"         default="$(find-pkg-share anymal_d_description)/urdf/anymal.urdf"/>
+  <!-- Joint state topic name -->
+  <arg name="joint_states_topic"       default="/joint_states"/>
+
+  <!-- ROS 2 has no global parameter server. Pass the URDF XML directly to the node. -->
+  <let name="robot_description" value="$(command &apos;xacro $(var description_file)&apos;)"/>
+
+  <!-- Joint state publisher -->
+  <node name="joint_state_publisher" pkg="joint_state_publisher_gui" exec="joint_state_publisher_gui" output="screen">
+    <param name="use_gui"           value="true"/>
+    <param name="rate"              value="100"/>
+    <remap from="joint_states"      to="$(var joint_states_topic)"/>
+  </node>
+
+  <node pkg="robot_state_publisher" exec="robot_state_publisher" name="robot_state_publisher" output="screen">
+    <param name="robot_description" value="$(var robot_description)"/>
+    <param name="use_sim_time" value="$(var use_sim_time)"/>
+  </node>
+
+  <!-- Robot state publisher -->
+  <!-- <node name="robot_state_publisher" pkg="robot_state_publisher" exec="robot_state_publisher" output="screen">
+    <param name="publish_frequency" value="100"/>
+    <param name="use_tf_static"     value="true"/>
+    <remap from="joint_states"      to="$(var joint_states_topic)"/>
+  </node> -->
+
+  <!-- RViz -->
+  <node name="rviz2" pkg="rviz2" exec="rviz2"
+        args="-d $(find-pkg-share anymal_d_description)/config/rviz/standalone.rviz"
+        output="screen"/>
+
+</launch>
