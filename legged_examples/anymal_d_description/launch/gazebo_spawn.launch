@@ -2,6 +2,9 @@
   <arg name="robot_type" default="anymal" description="Robot type"/>
   <arg name="use_sim_time" default="true"/>
 
+  <!-- World filename without the .world extension -->
+  <arg name="world_type" default="empty_world" description="Gazebo world name without the .world extension"/>
+
   <!-- Set robot description path -->
   <arg name="description_file" default="$(find-pkg-share anymal_d_description)/urdf/anymal.xacro"/>
   
@@ -18,7 +21,7 @@
   </node>
 
   <include file="$(find-pkg-share ros_gz_sim)/launch/gz_sim.launch.py">
-    <arg name="gz_args" value="-r $(find-pkg-share legged_gazebo)/worlds/empty_world.world"/>
+    <arg name="gz_args" value="-r $(find-pkg-share legged_gazebo)/worlds/$(var world_type).world"/>
   </include>
 
   <node pkg="ros_gz_sim" exec="create" output="screen" name="spawn_urdf" 
