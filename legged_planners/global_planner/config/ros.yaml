@@ -1,0 +1,40 @@
+lawn_mower_node:
+  ros__parameters:
+    # rectangular-snake, circular-snake, or circular-spiral
+    path_style: rectangular-snake
+    frame_id: odom
+    # Generate and publish the plan immediately. Set this to true only when
+    # /legged_odometry/pose_in_odom is guaranteed to be available at startup.
+    use_current_pose_as_origin: true
+
+    area_width: 80.0
+    area_height: 80.0
+    # For circular styles, the robot pose is a boundary point and its yaw
+    # points inward toward the center.
+    circle_diameter: 80.0
+    area_origin_x: 0.0
+    area_origin_y: 0.0
+    waypoint_spacing: 1.5
+    track_spacing: 1.0
+    robot_body_height: 0.55
+    robot_width: 0.53
+    min_turning_radius: 0.3
+    headland_width: 2.0
+
+    goal_topic: move_base_simple/goal
+    waypoint_topic: survey_waypoints
+    command_topic: survey_waypoint_command
+    robot_pose_topic: ''
+    robot_odom_topic: 'odom'
+    distance_threshold: 0.5
+    distance_log_period: 2.0
+    publish_period: 1.0
+    waypoint_path_publish_period: 1.0
+    stamp_goals: false
+    auto_start: false
+    keyboard_control: true
+
+# survey_rviz_waypoints:
+#   ros__parameters:
+#     # Keep this in sync with survey_waypoint_node.path_style.
+#     path_style: rectangular-snake

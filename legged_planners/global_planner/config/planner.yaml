@@ -1,0 +1,20 @@
+common:
+  area_width: 20
+  area_height: 20
+  area_origin_x: 0
+  area_origin_y: 0
+  waypoint_spacing: 0.99
+  track_spacing: 2
+  robot_body_height: 0.5
+  robot_start_x: 0.0
+  robot_start_y: 0.0
+  pattern_yaw: 0.0
+
+# Specific to the planner
+
+lawn_mower:
+  robot_width: 0.53
+  min_turning_radius: 1.
+  path_style: 'rectangular-snake'
+  circle_diameter: 0.0
+  circular_start_at_robot: false
