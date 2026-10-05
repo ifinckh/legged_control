@@ -354,6 +354,18 @@ Visualization Manager:
             Reliability Policy: Reliable
             Value: ""
           Value: true
+        - Class: rviz_default_plugins/MarkerArray
+          Enabled: true
+          Name: Survey Waypoints
+          Namespaces:
+            survey_waypoints: true
+          Topic:
+            Depth: 5
+            Durability Policy: Transient Local
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /survey_waypoint_markers
+          Value: true
       Enabled: true
       Name: Target Trajectories
   Enabled: true
