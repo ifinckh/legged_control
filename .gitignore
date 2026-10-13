@@ -52,3 +52,6 @@ qtcreator-*
 
 # Catkin custom files
 CATKIN_IGNORE
+
+# Claudio's ROS2 ANYMAL description
+legged_examples/anymal_d_description_claudio

@@ -86,6 +86,17 @@ install(DIRECTORY worlds/
   DESTINATION share/${PROJECT_NAME}/worlds
 )
 
+# World files refer to terrain assets with paths relative to worlds/, such as
+# ../models/terrain_01/mesh/height_map.png. Install the matching models tree
+# beside the installed worlds so Gazebo can resolve those URIs.
+install(DIRECTORY models/
+  DESTINATION share/${PROJECT_NAME}/models
+)
+
+install(DIRECTORY launch/
+  DESTINATION share/${PROJECT_NAME}/launch
+)
+
 #####################
 ## Ament Exporting ##
 #####################

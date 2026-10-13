@@ -1,0 +1,458 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+    <world name="terrain_01">
+
+        <!-- Plugin for simulating physics -->
+        <plugin
+                filename="gz-sim-physics-system"
+                name="gz::sim::systems::Physics">
+        </plugin>
+
+        <!-- Plugin for handling user commands -->
+        <plugin
+                filename="gz-sim-user-commands-system"
+                name="gz::sim::systems::UserCommands">
+        </plugin>
+
+        <!-- Plugin for broadcasting scene updates -->
+        <plugin
+                filename="gz-sim-scene-broadcaster-system"
+                name="gz::sim::systems::SceneBroadcaster">
+        </plugin>
+
+        <!-- Plugin for handling sensors like the LIDAR -->
+        <plugin
+                filename="gz-sim-sensors-system"
+                name="gz::sim::systems::Sensors">
+            <render_engine>ogre2</render_engine>
+        </plugin>
+
+        <!-- Plugin for IMU -->
+        <plugin filename="gz-sim-imu-system"
+                name="gz::sim::systems::Imu">
+        </plugin>
+
+        <!-- plugin for GPS  -->
+        <plugin
+                filename="gz-sim-navsat-system"
+                name="gz::sim::systems::NavSat">
+        </plugin>
+
+        <light type="directional" name="sun">
+            <cast_shadows>true</cast_shadows>
+            <pose>0 -7000 7000 0 0 0</pose>
+            <diffuse>0.9 0.88 0.82 1</diffuse>
+            <!-- Zero specular prevents glint/reflection artifacts on terrain -->
+            <specular>0 0 0 1</specular>
+            <!-- gz-sim/OGRE2 bug: shadow map artifact appears when both X and Y are non-zero.
+                 Workaround: keep one horizontal component zero. Y-only = sun from north. -->
+            <direction>0.0 0.6 -0.6</direction>
+        </light>
+
+        <scene>
+            <!-- Ambient fills in shadows — simulates sky/bounce light -->
+            <ambient>0.45 0.48 0.55 1</ambient>
+            <grid>false</grid>
+            <origin_visual>false</origin_visual>
+            <!-- Procedural sky with atmosphere scattering and clouds -->
+            <sky>
+                <time>10</time>
+                <sunrise>6</sunrise>
+                <sunset>20</sunset>
+                <clouds>
+                    <speed>12</speed>
+                </clouds>
+            </sky>
+        </scene>
+
+        <!-- Polymath standard physics simulation engine config,
+        ODE does not behave correctly with heightmaps, we'll use bullet instead -->
+        <!--        <physics type='ode'>-->
+        <!--            <max_step_size>0.005</max_step_size>-->
+        <!--            <real_time_factor>1</real_time_factor>-->
+        <!--            <real_time_update_rate>200</real_time_update_rate>-->
+        <!--        </physics>-->
+        <physics name="1ms" type="ignored">
+            <dart>
+                <!-- Heightmaps behave better with the bullet collision detector -->
+                <collision_detector>bullet</collision_detector>
+            </dart>
+        </physics>
+        <gravity>0 0 -9.8066</gravity>
+
+        <gui fullscreen='0'>
+            <!-- 3D scene — camera_pose: 80m above launch point, north (yaw=π/2), 30° nose down (pitch=π/6) -->
+            <plugin filename="MinimalScene" name="3D View">
+                <gz-gui>
+                    <title>3D View</title>
+                    <property type="bool" key="showTitleBar">false</property>
+                    <property type="string" key="state">docked</property>
+                </gz-gui>
+                <engine>ogre2</engine>
+                <scene>scene</scene>
+                <ambient_light>0.4 0.4 0.4</ambient_light>
+                <background_color>0.8 0.8 0.8</background_color>
+                <!-- 212.1m above terrain peak, facing north (yaw=π/2), 80° nose down (pitch=80°=1.3963rad) -->
+                <camera_pose>0 0 212.1 0 1.3963 1.5708</camera_pose>
+                <camera_clip>
+                    <near>0.1</near>
+                    <far>50000</far>
+                </camera_clip>
+            </plugin>
+            <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
+                <gz-gui>
+                    <property key="state" type="string">floating</property>
+                    <property key="width" type="double">5</property>
+                    <property key="height" type="double">5</property>
+                    <property key="showTitleBar" type="bool">false</property>
+                </gz-gui>
+            </plugin>
+            <plugin filename="GzSceneManager" name="Scene Manager">
+                <gz-gui>
+                    <property key="resizable" type="bool">false</property>
+                    <property key="width" type="double">5</property>
+                    <property key="height" type="double">5</property>
+                    <property key="state" type="string">floating</property>
+                    <property key="showTitleBar" type="bool">false</property>
+                </gz-gui>
+            </plugin>
+            <plugin filename="InteractiveViewControl" name="Interactive view control">
+                <gz-gui>
+                    <property key="resizable" type="bool">false</property>
+                    <property key="width" type="double">5</property>
+                    <property key="height" type="double">5</property>
+                    <property key="state" type="string">floating</property>
+                    <property key="showTitleBar" type="bool">false</property>
+                </gz-gui>
+            </plugin>
+            <plugin filename="CameraTracking" name="Camera Tracking">
+                <gz-gui>
+                    <property key="resizable" type="bool">false</property>
+                    <property key="width" type="double">5</property>
+                    <property key="height" type="double">5</property>
+                    <property key="state" type="string">floating</property>
+                    <property key="showTitleBar" type="bool">false</property>
+                </gz-gui>
+            </plugin>
+            <plugin filename="MarkerManager" name="Marker manager">
+                <gz-gui>
+                    <property key="resizable" type="bool">false</property>
+                    <property key="width" type="double">5</property>
+                    <property key="height" type="double">5</property>
+                    <property key="state" type="string">floating</property>
+                    <property key="showTitleBar" type="bool">false</property>
+                </gz-gui>
+            </plugin>
+            <plugin filename="SelectEntities" name="Select Entities">
+                <gz-gui>
+                    <property key="resizable" type="bool">false</property>
+                    <property key="width" type="double">5</property>
+                    <property key="height" type="double">5</property>
+                    <property key="state" type="string">floating</property>
+                    <property key="showTitleBar" type="bool">false</property>
+                </gz-gui>
+            </plugin>
+            <plugin filename="Spawn" name="Spawn Entities">
+                <gz-gui>
+                    <property key="resizable" type="bool">false</property>
+                    <property key="width" type="double">5</property>
+                    <property key="height" type="double">5</property>
+                    <property key="state" type="string">floating</property>
+                    <property key="showTitleBar" type="bool">false</property>
+                </gz-gui>
+            </plugin>
+            <plugin filename="VisualizationCapabilities" name="Visualization Capabilities">
+                <gz-gui>
+                    <property key="resizable" type="bool">false</property>
+                    <property key="width" type="double">5</property>
+                    <property key="height" type="double">5</property>
+                    <property key="state" type="string">floating</property>
+                    <property key="showTitleBar" type="bool">false</property>
+                </gz-gui>
+            </plugin>
+            <plugin filename="WorldControl" name="World control">
+                <gz-gui>
+                    <title>World control</title>
+                    <property type="bool" key="showTitleBar">false</property>
+                    <property type="bool" key="resizable">false</property>
+                    <property type="double" key="height">72</property>
+                    <property type="double" key="z">1</property>
+                    <property type="string" key="state">floating</property>
+                    <anchors target="3D View">
+                        <line own="left" target="left"/>
+                        <line own="bottom" target="bottom"/>
+                    </anchors>
+                </gz-gui>
+                <play_pause>true</play_pause>
+                <step>true</step>
+                <start_paused>true</start_paused>
+                <use_event>true</use_event>
+            </plugin>
+            <plugin filename="WorldStats" name="World stats">
+                <gz-gui>
+                    <title>World stats</title>
+                    <property type="bool" key="showTitleBar">false</property>
+                    <property type="bool" key="resizable">false</property>
+                    <property type="double" key="height">110</property>
+                    <property type="double" key="width">290</property>
+                    <property type="double" key="z">1</property>
+                    <property type="string" key="state">floating</property>
+                    <anchors target="3D View">
+                        <line own="right" target="right"/>
+                        <line own="bottom" target="bottom"/>
+                    </anchors>
+                </gz-gui>
+                <sim_time>true</sim_time>
+                <real_time>true</real_time>
+                <real_time_factor>true</real_time_factor>
+                <iterations>true</iterations>
+            </plugin>
+            <plugin filename="Shapes" name="Shapes">
+                <gz-gui>
+                    <property key="resizable" type="bool">false</property>
+                    <property key="x" type="double">0</property>
+                    <property key="y" type="double">0</property>
+                    <property key="width" type="double">250</property>
+                    <property key="height" type="double">50</property>
+                    <property key="state" type="string">floating</property>
+                    <property key="showTitleBar" type="bool">false</property>
+                    <property key="cardBackground" type="string">#666666</property>
+                </gz-gui>
+            </plugin>
+            <plugin filename="Lights" name="Lights">
+                <gz-gui>
+                    <property key="resizable" type="bool">false</property>
+                    <property key="x" type="double">250</property>
+                    <property key="y" type="double">0</property>
+                    <property key="width" type="double">150</property>
+                    <property key="height" type="double">50</property>
+                    <property key="state" type="string">floating</property>
+                    <property key="showTitleBar" type="bool">false</property>
+                    <property key="cardBackground" type="string">#666666</property>
+                </gz-gui>
+            </plugin>
+            <plugin filename="TransformControl" name="Transform control">
+                <gz-gui>
+                    <property key="resizable" type="bool">false</property>
+                    <property key="x" type="double">0</property>
+                    <property key="y" type="double">50</property>
+                    <property key="width" type="double">250</property>
+                    <property key="height" type="double">50</property>
+                    <property key="state" type="string">floating</property>
+                    <property key="showTitleBar" type="bool">false</property>
+                    <property key="cardBackground" type="string">#777777</property>
+                </gz-gui>
+            </plugin>
+            <plugin filename="Screenshot" name="Screenshot">
+                <gz-gui>
+                    <property key="resizable" type="bool">false</property>
+                    <property key="x" type="double">250</property>
+                    <property key="y" type="double">50</property>
+                    <property key="width" type="double">50</property>
+                    <property key="height" type="double">50</property>
+                    <property key="state" type="string">floating</property>
+                    <property key="showTitleBar" type="bool">false</property>
+                    <property key="cardBackground" type="string">#777777</property>
+                </gz-gui>
+            </plugin>
+            <plugin filename="CopyPaste" name="CopyPaste">
+                <gz-gui>
+                    <property key="resizable" type="bool">false</property>
+                    <property key="x" type="double">300</property>
+                    <property key="y" type="double">50</property>
+                    <property key="width" type="double">100</property>
+                    <property key="height" type="double">50</property>
+                    <property key="state" type="string">floating</property>
+                    <property key="showTitleBar" type="bool">false</property>
+                    <property key="cardBackground" type="string">#777777</property>
+                </gz-gui>
+            </plugin>
+            <plugin filename="ComponentInspector" name="Component inspector">
+                <gz-gui>
+                    <property type="bool" key="showTitleBar">false</property>
+                    <property type="string" key="state">docked</property>
+                </gz-gui>
+            </plugin>
+            <plugin filename="EntityTree" name="Entity tree">
+                <gz-gui>
+                    <property type="bool" key="showTitleBar">false</property>
+                    <property type="string" key="state">docked</property>
+                </gz-gui>
+            </plugin>
+        </gui>
+
+        <spherical_coordinates>
+            <surface_model>EARTH_WGS84</surface_model>
+            <latitude_deg>46.492791061116634</latitude_deg>
+            <longitude_deg>11.543607991400442</longitude_deg>
+            <elevation>2014.2000000000007</elevation>
+        </spherical_coordinates>
+
+        <!-- OGRE2 ignores both model and link <pose> for heightmap visuals;
+             visual position is controlled by <heightmap><pos> (world frame).
+             DART ignores <heightmap><pos> for collision; collision position
+             is controlled by <collision><pose> (standard SDF pose chain). -->
+        <model name="terrain_01">
+            <static>true</static>
+            <pose>0 0 0 0 0 0</pose>
+
+            <link name="ground">
+                <collision name="collision">
+                    <pose>-1.33 -0.77 0 0 0 0</pose>
+                    <geometry>
+                        <heightmap>
+                            <uri>../models/terrain_01/mesh/height_map.png</uri>
+                            <size>60.17 53.69 30.6</size>
+                            <!-- DART ignores <pos> for collision heightmaps; positioning
+                                 is handled by <collision><pose> above instead -->
+                            <pos>0 0 0</pos>
+                        </heightmap>
+                    </geometry>
+                </collision>
+                <visual name="ground_visual">
+                    <geometry>
+                        <heightmap>
+                            <use_terrain_paging>false</use_terrain_paging>
+                            <texture>
+                                <diffuse>../models/terrain_01/mesh/aerial.png</diffuse>
+                                <normal>../models/terrain_01/mesh/normal_map.png</normal>
+                                <size>60.17</size>
+                            </texture>
+                            <uri>../models/terrain_01/mesh/height_map.png</uri>
+                            <size>60.17 53.69 30.6</size>
+                            <!-- OGRE2 ignores model/link <pose> for heightmaps; <pos> is world frame -->
+                            <pos>-1.33 -0.77 0.0</pos>
+                            <!-- sampling: mesh vertices per heightmap pixel (SDF 1.8+ default = 1).
+                                 Tested with 16-bit heightmaps at sampling 1, 4, 8: no visual or
+                                 physics difference observed — OGRE2 interpolates extra vertices but
+                                 the result is indistinguishable at SRTM source resolution. Higher
+                                 values only increase vertex buffer memory (cost scales as sampling²).
+                                 sdformat PR #459 changed default from 2->1: "no good reason to
+                                 subsample by default". Explicitly set to 1 to match intent. -->
+                            <sampling>1</sampling>
+                        </heightmap>
+                    </geometry>
+                </visual>
+            </link>
+
+
+
+
+
+        </model>
+
+    
+
+    <model name="tree_0001"><static>true</static><pose>2.0496 -22.2879 30.4058 0 0 1.249334</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1248</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1248</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0002"><static>true</static><pose>14.0777 -21.9928 27.9152 0 0 0.040833</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2657</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2657</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0003"><static>true</static><pose>-7.4150 -19.8288 31.4658 0 0 3.468574</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1881</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1881</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0004"><static>true</static><pose>2.9135 -21.0531 29.5807 0 0 3.627611</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2751</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2751</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0005"><static>true</static><pose>7.4125 -19.2028 27.6254 0 0 1.818278</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1610</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1610</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0006"><static>true</static><pose>14.8618 -17.9152 25.4113 0 0 1.746560</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1382</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1382</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0007"><static>true</static><pose>-28.9152 -9.6150 18.7736 0 0 3.827283</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2366</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2366</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0008"><static>true</static><pose>-20.8781 -9.7713 24.7475 0 0 2.384189</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1494</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1494</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0009"><static>true</static><pose>-13.5623 -12.8031 28.5887 0 0 4.301558</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2203</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2203</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0010"><static>true</static><pose>-8.5092 -15.5024 29.6798 0 0 0.201692</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1612</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1612</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0011"><static>true</static><pose>-5.0462 -11.1677 26.9442 0 0 5.924476</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1580</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1580</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0012"><static>true</static><pose>2.8249 -13.8338 25.9651 0 0 2.485829</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2380</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2380</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0013"><static>true</static><pose>9.4895 -13.7487 24.2896 0 0 1.549606</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1677</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1677</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0014"><static>true</static><pose>12.1381 -13.2023 23.4419 0 0 5.641188</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2252</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2252</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0015"><static>true</static><pose>18.4495 -11.7835 21.1998 0 0 3.201448</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2996</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2996</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0016"><static>true</static><pose>-26.2455 -4.8283 18.0254 0 0 2.652509</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2626</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2626</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0017"><static>true</static><pose>-20.6082 -5.8529 23.1119 0 0 3.324523</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2993</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2993</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0018"><static>true</static><pose>-13.4150 -7.3328 26.2119 0 0 4.528429</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1221</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1221</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0019"><static>true</static><pose>-11.4475 -8.8719 26.8483 0 0 4.027282</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1680</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1680</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0020"><static>true</static><pose>-2.7823 -5.2372 23.8527 0 0 5.993002</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2017</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2017</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0021"><static>true</static><pose>2.6967 -7.7149 23.1717 0 0 1.122503</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2101</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2101</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0022"><static>true</static><pose>10.5850 -8.7252 21.5752 0 0 4.014638</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1737</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1737</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0023"><static>true</static><pose>12.6927 -7.3435 20.4658 0 0 3.389018</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2573</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2573</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0024"><static>true</static><pose>20.0249 -9.0342 19.3216 0 0 2.036733</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1201</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1201</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0025"><static>true</static><pose>-25.6836 -3.2215 17.7475 0 0 0.363955</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1754</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1754</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0026"><static>true</static><pose>-19.4150 -3.6150 22.6214 0 0 3.053568</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1354</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1354</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0027"><static>true</static><pose>-13.4150 0.8098 22.9492 0 0 0.806707</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2579</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2579</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0028"><static>true</static><pose>-12.9114 -0.2242 23.3544 0 0 5.481658</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1677</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1677</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0029"><static>true</static><pose>-5.6370 0.0258 22.8876 0 0 4.586292</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2171</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2171</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0030"><static>true</static><pose>2.1073 1.0329 20.5697 0 0 4.083304</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2991</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2991</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0031"><static>true</static><pose>5.3505 0.3007 19.7545 0 0 1.411815</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1418</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1418</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0032"><static>true</static><pose>12.1844 1.6518 17.7838 0 0 1.383667</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1614</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1614</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0033"><static>true</static><pose>22.1331 0.6035 14.5453 0 0 5.688922</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1612</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1612</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0034"><static>true</static><pose>-14.0235 4.3593 21.5887 0 0 4.929909</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2051</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2051</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0035"><static>true</static><pose>-9.9555 4.1690 22.0446 0 0 2.708374</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1374</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1374</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0036"><static>true</static><pose>-6.4050 6.4214 21.4896 0 0 4.230874</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2512</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2512</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0037"><static>true</static><pose>2.4909 5.2946 20.0035 0 0 2.131901</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1925</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1925</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0038"><static>true</static><pose>8.5612 4.2299 18.4878 0 0 2.818722</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1542</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1542</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0039"><static>true</static><pose>12.1597 6.1468 17.6700 0 0 5.801049</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1650</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1650</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0040"><static>true</static><pose>16.5850 6.7756 15.9396 0 0 0.317856</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2191</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2191</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0041"><static>true</static><pose>-17.7964 11.5100 16.9881 0 0 0.368417</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1922</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1922</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0042"><static>true</static><pose>-13.4150 14.3850 18.2147 0 0 4.926461</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1677</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1677</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0043"><static>true</static><pose>-6.4292 11.9701 20.4669 0 0 6.254425</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2923</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2923</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0044"><static>true</static><pose>-1.4056 10.2920 20.5738 0 0 1.864270</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1479</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1479</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0045"><static>true</static><pose>10.1657 10.8710 18.3942 0 0 4.699669</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2176</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2176</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0046"><static>true</static><pose>16.0654 12.3163 16.2913 0 0 5.357797</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2105</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2105</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0047"><static>true</static><pose>22.3813 14.3850 12.9912 0 0 1.167573</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1344</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1344</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0048"><static>true</static><pose>23.1046 9.6985 12.7805 0 0 0.753270</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1623</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1623</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0049"><static>true</static><pose>-13.4150 16.7184 17.4418 0 0 4.499966</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1568</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1568</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0050"><static>true</static><pose>-4.2724 19.3876 19.3776 0 0 1.884937</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2409</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2409</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0051"><static>true</static><pose>0.2362 20.3850 19.7527 0 0 2.879493</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1331</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1331</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0052"><static>true</static><pose>10.5850 17.3203 18.7089 0 0 1.339288</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1332</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1332</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0053"><static>true</static><pose>22.5850 14.5860 12.8620 0 0 0.991153</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1865</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1865</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0054"><static>true</static><pose>27.1514 14.6881 11.1217 0 0 6.202968</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2301</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2301</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0055"><static>true</static><pose>-9.7566 24.1251 17.0274 0 0 3.476007</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.1393</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.1393</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+
+    <model name="tree_0056"><static>true</static><pose>1.3123 22.0633 19.5601 0 0 1.658660</pose><link name="trunk"><visual name="trunk_visual"><geometry><cylinder><radius>0.2342</radius><length>7.0000</length></cylinder></geometry><material><ambient>0.22 0.08 0.025 1</ambient><diffuse>0.40 0.14 0.04 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual><collision name="trunk_collision"><geometry><cylinder><radius>0.2342</radius><length>7.0000</length></cylinder></geometry></collision></link></model>
+</world>
+</sdf>
