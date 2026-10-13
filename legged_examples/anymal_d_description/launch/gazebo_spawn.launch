@@ -1,6 +1,9 @@
 <launch>
   <arg name="robot_type" default="anymal" description="Robot type"/>
   <arg name="use_sim_time" default="true"/>
+  <arg name="terrain" default="terrain_01" description="Forest terrain name"/>
+  <arg name="spawn_x" default="0.0" description="Robot spawn x position in world coordinates (m)"/>
+  <arg name="spawn_y" default="0.0" description="Robot spawn y position in world coordinates (m)"/>
 
   <!-- Set robot description path -->
   <arg name="description_file" default="$(find-pkg-share anymal_d_description)/urdf/anymal.xacro"/>
@@ -18,11 +21,11 @@
   </node>
 
   <include file="$(find-pkg-share ros_gz_sim)/launch/gz_sim.launch.py">
-    <arg name="gz_args" value="-r $(find-pkg-share legged_gazebo)/worlds/empty_world.world"/>
+    <arg name="gz_args" value="-r $(find-pkg-share legged_gazebo)/worlds/forest_$(var terrain).world"/>
   </include>
 
   <node pkg="ros_gz_sim" exec="create" output="screen" name="spawn_urdf" 
-    args="-z 0.82 -topic robot_description -name $(var robot_type)"/>
+    args="-x $(var spawn_x) -y $(var spawn_y) -z 0.82 -topic robot_description -name $(var robot_type)"/>
 
   <node pkg="ros_gz_bridge" exec="parameter_bridge" name="clock_bridge" output="screen"
     args="/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock"/>

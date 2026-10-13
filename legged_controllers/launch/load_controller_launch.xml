@@ -23,7 +23,7 @@
     args="imu_sensor_broadcaster --controller-manager /controller_manager --service-call-timeout 120.0"/>
 
   <node pkg="controller_manager" exec="spawner" name="legged_controller_spawner" output="screen"
-    args="legged_controller --controller-manager /controller_manager --service-call-timeout 120.0">
+    args="legged_controller --controller-manager /controller_manager --service-call-timeout 600.0">
     <param name="urdfFile" value="$(var urdfFile)"/>
     <param name="taskFile" value="$(var taskFile)"/>
     <param name="referenceFile" value="$(var referenceFile)"/>
